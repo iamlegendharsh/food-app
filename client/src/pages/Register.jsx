@@ -20,7 +20,7 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
-      await API.post('/auth/register', {
+      await API.post('/api/auth/register', {
         ...form,
         age:    Number(form.age),
         weight: Number(form.weight),

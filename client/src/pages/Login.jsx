@@ -93,7 +93,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await API.post('/auth/login', { email, password });
+      const res = await API.post('/api/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       navigate('/');
     } catch (err) {
