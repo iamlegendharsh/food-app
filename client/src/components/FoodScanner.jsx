@@ -17,7 +17,7 @@ export default function FoodScanner({ onFoodDetected }) {
 
   const stopStream = useCallback(() => {
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
       setStream(null);
     }
   }, [stream]);
@@ -34,9 +34,10 @@ export default function FoodScanner({ onFoodDetected }) {
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, [stopStream]);
 
-  const compressImage = (dataUrl, maxWidth = 900, quality = 0.75) => {
+  const compressImage = useCallback((dataUrl, maxWidth = 900, quality = 0.75) => {
     return new Promise((resolve, reject) => {
       const img = new Image();
+
       img.onload = () => {
         const scale = Math.min(maxWidth / img.width, 1);
         const canvas = document.createElement('canvas');
@@ -52,29 +53,31 @@ export default function FoodScanner({ onFoodDetected }) {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL('image/jpeg', quality));
       };
+
       img.onerror = () => reject(new Error('Invalid image file'));
       img.src = dataUrl;
     });
-  };
+  }, []);
 
-  const prepareImage = async (dataUrl) => {
+  const prepareImage = useCallback(async (dataUrl) => {
     const compressedDataUrl = await compressImage(dataUrl);
     const rawBase64 = compressedDataUrl.split(',')[1];
+
     setImagePreview(compressedDataUrl);
     setImageBase64(rawBase64);
     setMimeType('image/jpeg');
     setQuantity(1);
     setMode('preview');
-  };
+  }, [compressImage]);
 
-  const openCamera = async () => {
+  const openCamera = useCallback(async () => {
     setError('');
     setResult(null);
 
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: 'environment' } },
-        audio: false
+        audio: false,
       });
 
       setStream(mediaStream);
@@ -89,7 +92,7 @@ export default function FoodScanner({ onFoodDetected }) {
     } catch (err) {
       setError('Camera access failed. Allow camera permission or upload a photo instead.');
     }
-  };
+  }, []);
 
   const capturePhoto = useCallback(async () => {
     try {
@@ -120,9 +123,9 @@ export default function FoodScanner({ onFoodDetected }) {
       stopStream();
       setMode('idle');
     }
-  }, [stopStream]);
+  }, [stopStream, prepareImage]);
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = useCallback(async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -135,6 +138,7 @@ export default function FoodScanner({ onFoodDetected }) {
     }
 
     const reader = new FileReader();
+
     reader.onload = async (event) => {
       try {
         await prepareImage(event.target.result);
@@ -142,18 +146,19 @@ export default function FoodScanner({ onFoodDetected }) {
         setError('Failed to process selected image.');
       }
     };
+
     reader.onerror = () => setError('Could not read selected file.');
     reader.readAsDataURL(file);
-  };
+  }, [prepareImage]);
 
-  const analyzeFood = async () => {
+  const analyzeFood = useCallback(async () => {
     setMode('loading');
     setError('');
 
     try {
       const res = await API.post('/ai/scan-food', {
         imageBase64,
-        mimeType
+        mimeType,
       });
 
       setResult(res.data);
@@ -164,27 +169,27 @@ export default function FoodScanner({ onFoodDetected }) {
       setError(msg);
       setMode('preview');
     }
-  };
+  }, [imageBase64, mimeType]);
 
   const qtyNumber = Math.max(Number(quantity) || 1, 0.5);
 
   const finalResult = result
     ? {
         ...result,
-        calories: ((Number(result.calories) || 0) * qtyNumber),
-        protein: ((Number(result.protein) || 0) * qtyNumber),
-        carbs: ((Number(result.carbs) || 0) * qtyNumber),
-        fats: ((Number(result.fats) || 0) * qtyNumber),
+        calories: (Number(result.calories) || 0) * qtyNumber,
+        protein: (Number(result.protein) || 0) * qtyNumber,
+        carbs: (Number(result.carbs) || 0) * qtyNumber,
+        fats: (Number(result.fats) || 0) * qtyNumber,
         quantity: qtyNumber,
-        unit: 'serving'
+        unit: 'serving',
       }
     : null;
 
-  const addToDiary = () => {
+  const addToDiary = useCallback(() => {
     if (!finalResult || !onFoodDetected) return;
     onFoodDetected(finalResult);
     reset();
-  };
+  }, [finalResult, onFoodDetected, reset]);
 
   const s = {
     card: {
@@ -192,14 +197,14 @@ export default function FoodScanner({ onFoodDetected }) {
       borderRadius: '16px',
       padding: '20px',
       boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-      marginBottom: '16px'
+      marginBottom: '16px',
     },
     title: {
       marginTop: 0,
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
-      fontSize: '16px'
+      fontSize: '16px',
     },
     badge: {
       fontSize: '11px',
@@ -207,7 +212,7 @@ export default function FoodScanner({ onFoodDetected }) {
       color: '#6366f1',
       padding: '2px 8px',
       borderRadius: '999px',
-      fontWeight: '600'
+      fontWeight: '600',
     },
     btn: {
       padding: '10px 16px',
@@ -217,7 +222,7 @@ export default function FoodScanner({ onFoodDetected }) {
       borderRadius: '8px',
       cursor: 'pointer',
       fontSize: '14px',
-      fontWeight: '600'
+      fontWeight: '600',
     },
     btnGreen: {
       padding: '10px 16px',
@@ -227,7 +232,7 @@ export default function FoodScanner({ onFoodDetected }) {
       borderRadius: '8px',
       cursor: 'pointer',
       fontSize: '14px',
-      fontWeight: '600'
+      fontWeight: '600',
     },
     btnGray: {
       padding: '10px 16px',
@@ -237,7 +242,7 @@ export default function FoodScanner({ onFoodDetected }) {
       borderRadius: '8px',
       cursor: 'pointer',
       fontSize: '14px',
-      fontWeight: '600'
+      fontWeight: '600',
     },
     error: {
       background: '#fee2e2',
@@ -245,20 +250,20 @@ export default function FoodScanner({ onFoodDetected }) {
       padding: '10px 12px',
       borderRadius: '10px',
       marginBottom: '12px',
-      fontSize: '13px'
+      fontSize: '13px',
     },
     infoBox: {
       background: '#f9fafb',
       borderRadius: '12px',
       padding: '14px',
-      marginTop: '12px'
+      marginTop: '12px',
     },
     row: {
       display: 'flex',
       justifyContent: 'space-between',
       padding: '6px 0',
       borderBottom: '1px solid #eef2f7',
-      fontSize: '14px'
+      fontSize: '14px',
     },
     qtyInput: {
       width: '90px',
@@ -266,14 +271,14 @@ export default function FoodScanner({ onFoodDetected }) {
       border: '1px solid #d1d5db',
       borderRadius: '8px',
       fontSize: '13px',
-      outline: 'none'
-    }
+      outline: 'none',
+    },
   };
 
   const confidenceStyles = {
     high: { background: '#dcfce7', color: '#15803d' },
     medium: { background: '#fef3c7', color: '#b45309' },
-    low: { background: '#fee2e2', color: '#b91c1c' }
+    low: { background: '#fee2e2', color: '#b91c1c' },
   };
 
   return (
@@ -320,7 +325,7 @@ export default function FoodScanner({ onFoodDetected }) {
               maxHeight: '320px',
               objectFit: 'cover',
               borderRadius: '12px',
-              background: '#111'
+              background: '#111',
             }}
           />
           <canvas ref={canvasRef} style={{ display: 'none' }} />
@@ -340,7 +345,7 @@ export default function FoodScanner({ onFoodDetected }) {
               width: '100%',
               maxHeight: '320px',
               objectFit: 'cover',
-              borderRadius: '12px'
+              borderRadius: '12px',
             }}
           />
           <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
@@ -360,7 +365,7 @@ export default function FoodScanner({ onFoodDetected }) {
               border: '4px solid #e5e7eb',
               borderTop: '4px solid #6366f1',
               borderRadius: '50%',
-              animation: 'spin 0.8s linear infinite'
+              animation: 'spin 0.8s linear infinite',
             }}
           />
           <p style={{ margin: 0, color: '#4f46e5', fontWeight: '700' }}>Analysing food with Groq...</p>
@@ -380,7 +385,7 @@ export default function FoodScanner({ onFoodDetected }) {
                 maxHeight: '220px',
                 objectFit: 'cover',
                 borderRadius: '12px',
-                marginBottom: '12px'
+                marginBottom: '12px',
               }}
             />
           )}
@@ -441,7 +446,7 @@ export default function FoodScanner({ onFoodDetected }) {
                   color: '#1e40af',
                   borderRadius: '10px',
                   padding: '10px 12px',
-                  fontSize: '13px'
+                  fontSize: '13px',
                 }}
               >
                 💡 {result.tips}
