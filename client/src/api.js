@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: "https://food-app-wis9.onrender.com" });
+const API_URL = 'https://food-app-4-e91k.onrender.com';
 
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem('token');
