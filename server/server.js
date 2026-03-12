@@ -10,7 +10,7 @@ const app = express();
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://food-app-s81m.vercel.app'
+  'https://food-app-b5xm.vercel.app/login',
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
