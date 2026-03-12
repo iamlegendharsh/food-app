@@ -122,7 +122,7 @@ export default function FoodScanner({ onFoodDetected }) {
     setMode('loading');
     setError('');
     try {
-      const res = await API.post('/ai/scan-food', { imageBase64, mimeType });
+      const res = await API.post('/api/analyze-food', { imageBase64, mimeType });
       setResult(res.data);
       setQuantity(1);
       setMode('result');
