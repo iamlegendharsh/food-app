@@ -9,7 +9,7 @@ const app = express();
 
 app.use(cors({
   origin: [
-    'http://localhost:3000',
+    
   'https://food-app-b5xm.vercel.app',
   ],
   credentials: true,
